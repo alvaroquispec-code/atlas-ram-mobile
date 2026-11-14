@@ -4,7 +4,7 @@ App en React Native (Expo SDK 58) del sistema de vigilancia de resistencia antim
 
 | | |
 |---|---|
-| **APK (Android)** | https://expo.dev/accounts/alvaroquispec-code/projects/atlas-ram-mobile/builds/a45b6dd0-ae9e-4586-b6e6-7626764d0d64 |
+| **APK (Android)** | https://github.com/alvaroquispec-code/atlas-ram-mobile/releases/latest/download/atlas-ram.apk |
 | **API** | https://3-85-201-152.sslip.io/api/v1 |
 | **Web** | https://atlas-ram-web.vercel.app |
 
