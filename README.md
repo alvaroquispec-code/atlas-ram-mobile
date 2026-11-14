@@ -10,6 +10,17 @@ App en React Native (Expo SDK 58) del sistema de vigilancia de resistencia antim
 
 Usuario de prueba: `admin@atlasram.test` / `AtlasRam2026!` (datos de demostración).
 
+## Integrantes y participación
+
+El porcentaje indica cuánto cumplió cada integrante de sus responsabilidades en cada fase (100 % = cumplimiento completo).
+
+| Integrante | Principales aportes | Fase 1 (API) | Fase 2 (web, móvil y despliegue) |
+|---|---|:---:|:---:|
+| Álvaro Felipe Quispe Carrillo | Modelo de dominio y lógica de la API; despliegue completo (AWS EC2, RDS, HTTPS con Caddy, Vercel, EAS); web: panel de resistencia, aislamientos, usuarios y catálogo; base de la app móvil | 100 % | 100 % |
+| Joaquim Alexander Carrión Díaz | Fase 1: autenticación JWT con refresh tokens y autorización por rol (#5). Fase 2: web, con login y registro, cliente API con interceptores y rutas protegidas | 100 % | 100 % |
+| Adriano Alonso Cosme Salazar | Fase 1: ingesta asíncrona de CSV, eventos de dominio y notificaciones (#8). Fase 2: app móvil, con escáner QR, registro de aislamientos y publicación del APK con EAS | 100 % | 100 % |
+| Fabian Isaias Sanchez Zedano | Fase 1: excepciones propias, manejo global de errores y endpoints de la API (#6). No participó en la fase 2 | 100 % | 0 % |
+
 ## Funcionalidades
 
 | Pantalla | Qué hace | Backend / sensores |
