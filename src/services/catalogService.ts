@@ -12,6 +12,18 @@ export const catalogService = {
     return data.content
   },
 
+  // Establecimientos donde el usuario puede registrar: un técnico solo ve los suyos.
+  // Si el backend todavía no tiene el endpoint, usamos el catálogo completo.
+  async myFacilities(signal?: AbortSignal) {
+    try {
+      const { data } = await apiClient.get<Facility[]>('/auth/me/facilities', { signal })
+      return data
+    } catch (err) {
+      if (signal?.aborted) throw err
+      return catalogService.facilities(signal)
+    }
+  },
+
   async microorganisms(signal?: AbortSignal) {
     const { data } = await apiClient.get<Page<Microorganism>>('/microorganisms', { params: { size: 100 }, signal })
     return data.content

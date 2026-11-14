@@ -1,5 +1,5 @@
 import { router } from 'expo-router'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { StyleSheet, Text } from 'react-native'
 import Banner from '../../components/Banner'
 import Button from '../../components/Button'
@@ -46,7 +46,7 @@ const SEX_OPTIONS = [
 export default function NewIsolateScreen() {
   const { showToast } = useToast()
   const catalogs = useFetch(
-    (signal) => Promise.all([catalogService.facilities(signal), catalogService.microorganisms(signal)]),
+    (signal) => Promise.all([catalogService.myFacilities(signal), catalogService.microorganisms(signal)]),
     [],
   )
   const { values, errors, setValue, submit, setServerErrors } = useForm<IsolateForm>(
@@ -63,6 +63,11 @@ export default function NewIsolateScreen() {
     [microorganisms],
   )
   const selectedFacility = facilities.find((f) => String(f.id) === values.facilityId)
+
+  // Si el usuario trabaja en un solo establecimiento, lo dejamos elegido.
+  useEffect(() => {
+    if (facilities.length === 1 && !values.facilityId) setValue('facilityId')(String(facilities[0].id))
+  }, [facilities, values.facilityId, setValue])
 
   const onSubmit = submit(async (form) => {
     setIsSubmitting(true)
