@@ -37,7 +37,12 @@ async function refreshAccessToken(): Promise<string> {
   return data.accessToken
 }
 
-type RetriableConfig = InternalAxiosRequestConfig & { _retry?: boolean }
+type RetriableConfig = InternalAxiosRequestConfig & { _retry?: boolean; _attempt?: number }
+
+// En el celular la señal se corta seguido. Un GET que falla por red, timeout o 5xx se repite
+// hasta 2 veces (500 ms y 1 s). POST y DELETE no se repiten para no duplicar registros.
+const MAX_RETRIES = 2
+const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
 // 2) Después de cada respuesta: si es 401, renueva el token una vez y repite la request.
 apiClient.interceptors.response.use(
@@ -45,6 +50,16 @@ apiClient.interceptors.response.use(
   async (error: AxiosError) => {
     const original = error.config as RetriableConfig | undefined
     const isAuthCall = AUTH_PATHS.some((path) => original?.url?.startsWith(path))
+    const status = error.response?.status
+    const isRecoverable = !axios.isCancel(error) && (status === undefined || status >= 500)
+    const isIdempotent = (original?.method ?? 'get').toLowerCase() === 'get'
+
+    // 3) Reintento automático con espera exponencial para errores recuperables.
+    if (original && isRecoverable && isIdempotent && (original._attempt ?? 0) < MAX_RETRIES) {
+      original._attempt = (original._attempt ?? 0) + 1
+      await wait(500 * 2 ** (original._attempt - 1))
+      if (!original.signal?.aborted) return apiClient(original)
+    }
 
     if (error.response?.status === 401 && original && !original._retry && !isAuthCall) {
       original._retry = true

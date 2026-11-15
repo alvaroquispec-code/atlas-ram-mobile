@@ -18,6 +18,7 @@ export function usePaginatedList<T>(fetchPage: PageFetcher<T>) {
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [isLoadingMore, setIsLoadingMore] = useState(false)
   const controllerRef = useRef<AbortController | null>(null)
+  const hasLoaded = useRef(false)
 
   const load = useCallback(
     async (pageToLoad: number, mode: 'initial' | 'refresh' | 'more') => {
@@ -25,7 +26,9 @@ export function usePaginatedList<T>(fetchPage: PageFetcher<T>) {
       const controller = new AbortController()
       controllerRef.current = controller
 
-      if (mode === 'refresh') setIsRefreshing(true)
+      // Si ya había datos (por ejemplo, cambió un filtro), mostramos el indicador de recarga
+      // en vez de la pantalla de carga completa, para no perder lo que el usuario estaba escribiendo.
+      if (mode === 'refresh' || (mode === 'initial' && hasLoaded.current)) setIsRefreshing(true)
       if (mode === 'more') setIsLoadingMore(true)
       setError(null)
 
@@ -35,6 +38,7 @@ export function usePaginatedList<T>(fetchPage: PageFetcher<T>) {
         setPage(result.number)
         setIsLast(result.last)
         setTotal(result.totalElements)
+        hasLoaded.current = true
       } catch (err) {
         if (!isCancelled(err)) setError(toApiError(err))
       } finally {

@@ -20,12 +20,15 @@ function IsolateCard({ isolate, onPress }: IsolateCardProps) {
       style={({ pressed }) => [styles.card, pressed && styles.pressed]}
     >
       <View style={styles.body}>
-        <Text style={styles.title}>{isolate.microorganismName}</Text>
+        <View style={styles.titleRow}>
+          <Text style={styles.title}>{isolate.microorganismName}</Text>
+          <Text style={styles.number}>#{isolate.id}</Text>
+        </View>
         <Text style={styles.meta}>
           {formatDate(isolate.collectionDate)} · {SPECIMEN_LABELS[isolate.specimenType]}
         </Text>
         <Text style={styles.meta} numberOfLines={1}>
-          {isolate.facilityName} · {isolate.districtName}
+          {isolate.facilityName} · {isolate.districtName ?? '—'}
         </Text>
       </View>
       <Ionicons name="chevron-forward" size={20} color={colors.muted} />
@@ -48,6 +51,8 @@ const styles = StyleSheet.create({
   },
   pressed: { backgroundColor: colors.brandSoft },
   body: { flex: 1, gap: 2 },
-  title: { fontSize: 16, fontWeight: '600', fontStyle: 'italic', color: colors.text },
+  titleRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', gap: spacing.sm },
+  number: { fontSize: 12, color: colors.muted, fontVariant: ['tabular-nums'] },
+  title: { flexShrink: 1, fontSize: 16, fontWeight: '600', fontStyle: 'italic', color: colors.text },
   meta: { fontSize: 13, color: colors.muted },
 })

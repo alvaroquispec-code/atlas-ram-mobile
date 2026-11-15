@@ -1,10 +1,20 @@
-import type { CreateIsolatePayload, Isolate, Page, SusceptibilityResult } from '../types/api'
+import type { CreateIsolatePayload, Isolate, Page, Specimen, SusceptibilityResult } from '../types/api'
 import { apiClient } from './apiClient'
 
+export type IsolateSort = 'collectionDate,desc' | 'collectionDate,asc'
+
+export interface IsolateFilters {
+  microorganismId?: number | null
+  specimen?: Specimen | null
+  sort?: IsolateSort
+}
+
 export const isolateService = {
-  async list(page: number, size: number, signal?: AbortSignal) {
+  // Filtros opcionales y combinables (el backend los arma con JPA Specifications).
+  async list(page: number, size: number, filters: IsolateFilters = {}, signal?: AbortSignal) {
+    const { microorganismId, specimen, sort = 'collectionDate,desc' } = filters
     const { data } = await apiClient.get<Page<Isolate>>('/isolates', {
-      params: { page, size, sort: 'collectionDate,desc' },
+      params: { page, size, sort, microorganismId: microorganismId ?? undefined, specimen: specimen ?? undefined },
       signal,
     })
     return data
