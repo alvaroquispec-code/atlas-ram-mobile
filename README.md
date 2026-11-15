@@ -26,8 +26,8 @@ El porcentaje indica cuánto cumplió cada integrante de sus responsabilidades e
 | Pantalla | Qué hace | Backend / sensores |
 |---|---|---|
 | Login y registro | Inicio de sesión con validación en tiempo real | `POST /auth/login`, `POST /auth/register`, `GET /auth/me` |
-| Mi zona | Detecta tu distrito y muestra qué antibióticos fallan más ahí. Si el distrito no reúne 30 resultados por combinación (CLSI M39), muestra la resistencia de los **hospitales donde se atienden sus pacientes** (`GET /antibiogram/referral`) y, si ni así alcanza, la de Lima y Callao. Nunca inventa un porcentaje con pocos casos | **GPS** (expo-location) + **Nominatim** (API externa) + `GET /antibiogram?districtId=` |
-| Aislamientos | Lista con scroll infinito; agitar el teléfono recarga | `GET /isolates?page&size` + **acelerómetro** (expo-sensors) |
+| Mi zona | Detecta tu distrito y muestra qué antibióticos fallan más ahí. Si el distrito no reúne 30 resultados por combinación (CLSI M39), muestra la resistencia de los **hospitales donde se atienden sus pacientes** (`GET /antibiogram/referral`) y, si ni así alcanza, la de Lima y Callao. Nunca inventa un porcentaje con pocos casos. El selector manual de distrito tiene buscador (ignora tildes y mayúsculas) | **GPS** (expo-location) + **Nominatim** (API externa) + `GET /antibiogram?districtId=` |
+| Aislamientos | Lista con scroll infinito; filtros combinables por microorganismo y tipo de muestra, orden por fecha e "Ir al aislamiento N.º"; agitar el teléfono recarga | `GET /isolates?page&size&sort&microorganismId&specimen` + **acelerómetro** (expo-sensors) |
 | Detalle | Datos del aislamiento y su antibiograma; un ADMIN puede eliminarlo | `GET /isolates/{id}`, `GET /isolates/{id}/results`, `DELETE /isolates/{id}` |
 | Escanear | Lee el QR de la etiqueta de la muestra y abre su detalle | **Cámara** (expo-camera) |
 | Registrar | Formulario para técnicos de laboratorio | `POST /isolates` |

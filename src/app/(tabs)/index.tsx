@@ -8,6 +8,7 @@ import EmptyState from '../../components/EmptyState'
 import ErrorState from '../../components/ErrorState'
 import LoadingState from '../../components/LoadingState'
 import ResistanceRow from '../../components/ResistanceRow'
+import TextField from '../../components/TextField'
 import { useCurrentDistrict, type LocateStatus } from '../../hooks/useCurrentDistrict'
 import { useFetch } from '../../hooks/useFetch'
 import { antibiogramService } from '../../services/antibiogramService'
@@ -62,10 +63,31 @@ export default function MyZoneScreen() {
   )
 }
 
+// Sin tildes ni mayúsculas: "jesus maria" encuentra "Jesús María".
+const normalize = (text: string) => text.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim()
+
 function DistrictPicker({ districts, selectedId, onSelect }: { districts: District[]; selectedId: number | null; onSelect: (d: District) => void }) {
-  const options = useMemo(() => districts.map((d) => ({ value: d.id, label: d.name })), [districts])
+  const [query, setQuery] = useState('')
+  // Son 50 distritos: filtramos en el celular mientras se escribe, sin pedir nada al servidor.
+  const options = useMemo(() => {
+    const term = normalize(query)
+    return districts
+      .filter((d) => !term || normalize(d.name).includes(term))
+      .map((d) => ({ value: d.id, label: d.name }))
+  }, [districts, query])
+
   return (
     <Card>
+      <TextField
+        label="Buscar distrito"
+        placeholder="Por ejemplo, Barranco"
+        value={query}
+        onChangeText={setQuery}
+        autoFocus
+        autoCorrect={false}
+        returnKeyType="search"
+      />
+      {options.length === 0 && <Text style={styles.muted}>Ningún distrito coincide con “{query.trim()}”.</Text>}
       <ChipSelect
         label="Distrito"
         options={options}
