@@ -26,7 +26,7 @@ El porcentaje indica cuánto cumplió cada integrante de sus responsabilidades e
 | Pantalla | Qué hace | Backend / sensores |
 |---|---|---|
 | Login y registro | Inicio de sesión con validación en tiempo real | `POST /auth/login`, `POST /auth/register`, `GET /auth/me` |
-| Mi zona | Detecta tu distrito y muestra qué antibióticos fallan más ahí | **GPS** (expo-location) + **Nominatim** (API externa) + `GET /antibiogram?districtId=` |
+| Mi zona | Detecta tu distrito y muestra qué antibióticos fallan más ahí. Si el distrito no reúne 30 resultados por combinación (CLSI M39), muestra la resistencia de los **hospitales donde se atienden sus pacientes** (`GET /antibiogram/referral`) y, si ni así alcanza, la de Lima y Callao. Nunca inventa un porcentaje con pocos casos | **GPS** (expo-location) + **Nominatim** (API externa) + `GET /antibiogram?districtId=` |
 | Aislamientos | Lista con scroll infinito; agitar el teléfono recarga | `GET /isolates?page&size` + **acelerómetro** (expo-sensors) |
 | Detalle | Datos del aislamiento y su antibiograma; un ADMIN puede eliminarlo | `GET /isolates/{id}`, `GET /isolates/{id}/results`, `DELETE /isolates/{id}` |
 | Escanear | Lee el QR de la etiqueta de la muestra y abre su detalle | **Cámara** (expo-camera) |
@@ -50,7 +50,7 @@ src/
 
 - **Tokens:** se guardan cifrados con `expo-secure-store`. El interceptor de request agrega `Authorization: Bearer`. El de response renueva el token con `/auth/refresh` ante un 401 y repite la petición.
 - **Rutas protegidas:** `Stack.Protected` en `src/app/_layout.tsx`.
-- **Errores:** `utils/apiError.ts` traduce cada código HTTP, timeout o falta de conexión a un mensaje claro. Las pantallas muestran carga, error con *Reintentar* y estados vacíos.
+- **Errores:** `utils/apiError.ts` traduce cada código HTTP, timeout o falta de conexión a un mensaje claro. Las pantallas muestran carga, error con *Reintentar* y estados vacíos. Además, un `GET` que falla por red, timeout o 5xx se reintenta solo hasta 2 veces con espera exponencial (500 ms y 1 s); los `POST` y `DELETE` no, para no duplicar registros.
 
 ## Correr en local
 

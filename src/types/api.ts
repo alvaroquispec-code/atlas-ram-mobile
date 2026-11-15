@@ -117,6 +117,19 @@ export interface AntibiogramEntry {
   resistancePercentage: number
 }
 
+export interface ReferralFacility {
+  id: number
+  name: string
+  isolateCount: number
+  sharePercentage: number
+}
+
+export interface ReferralAntibiogram {
+  districtName: string
+  facilities: ReferralFacility[]
+  entries: AntibiogramEntry[]
+}
+
 export interface CreateIsolatePayload {
   collectionDate: string
   specimenType: Specimen
