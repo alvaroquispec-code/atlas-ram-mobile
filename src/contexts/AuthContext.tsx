@@ -1,4 +1,5 @@
 import { createContext, useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { AppState } from 'react-native'
 import { setSessionExpiredHandler } from '../services/apiClient'
 import { authService, type LoginCredentials, type RegisterData } from '../services/authService'
 import type { Role, User } from '../types/api'
@@ -17,6 +18,10 @@ export interface AuthContextValue {
 }
 
 export const AuthContext = createContext<AuthContextValue | null>(null)
+
+// Cada cuánto se verifica que la sesión siga vigente mientras la app está en primer plano. Si se cerró desde
+// otro dispositivo (o se cambió la contraseña), /auth/me responde 401, el refresh falla y se vuelve al login.
+const SESSION_CHECK_MS = 30_000
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
@@ -39,6 +44,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .catch(() => authService.logout())
       .finally(() => setIsRestoring(false))
   }, [])
+
+  // Verificación de sesión: al volver la app a primer plano y cada 30 s mientras está abierta.
+  const isLoggedIn = !!user
+  useEffect(() => {
+    if (!isLoggedIn) return
+    const check = () => {
+      if (AppState.currentState === 'active') authService.me().catch(() => {})
+    }
+    const timer = setInterval(check, SESSION_CHECK_MS)
+    const subscription = AppState.addEventListener('change', (state) => {
+      if (state === 'active') check()
+    })
+    return () => {
+      clearInterval(timer)
+      subscription.remove()
+    }
+  }, [isLoggedIn])
 
   const login = useCallback(async (credentials: LoginCredentials) => {
     setUser(await authService.login(credentials))
