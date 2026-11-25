@@ -1,4 +1,4 @@
-export type Role = 'ADMIN' | 'LAB_TECHNICIAN' | 'EPIDEMIOLOGIST' | 'PUBLIC_VIEWER'
+export type Role = 'ADMIN' | 'LAB_TECHNICIAN' | 'EPIDEMIOLOGIST' | 'PHARMACIST' | 'PUBLIC_VIEWER'
 
 export interface AuthResponse {
   accessToken: string
@@ -137,4 +137,48 @@ export interface CreateIsolatePayload {
   patientSex: 'M' | 'F' | null
   facilityId: number
   microorganismId: number
+}
+export type Syndrome = 'BACTEREMIA' | 'URINARY' | 'RESPIRATORY' | 'SKIN_SOFT_TISSUE' | 'MENINGITIS'
+
+export interface WiscaRegimen {
+  code: string
+  antibioticNames: string[]
+  coverageMedian: number
+  credibleLow: number
+  credibleHigh: number
+  probabilityAboveTarget: number
+  probabilityBest: number
+  untestedFrequency: number
+  untestedPathogens: string[]
+}
+
+export interface WiscaResult {
+  syndrome: Syndrome
+  syndromeLabel: string
+  isolates: number
+  sufficientData: boolean
+  targetCoverage: number
+  pathogens: { name: string; isolates: number; frequency: number }[]
+  regimens: WiscaRegimen[]
+}
+
+export type AlertStatus = 'OPEN' | 'ACKNOWLEDGED' | 'CLOSED'
+
+export interface ResistanceAlert {
+  id: number
+  facilityName: string
+  microorganismName: string
+  antibioticName: string
+  antibioticClass: string
+  status: AlertStatus
+  detectedOn: string
+  windowStart: string
+  windowEnd: string
+  testedCount: number
+  resistantCount: number
+  observedPercentage: number
+  baselineTested: number
+  baselineResistant: number
+  baselinePercentage: number
+  pValue: number
 }

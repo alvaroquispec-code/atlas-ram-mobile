@@ -20,6 +20,7 @@ export const ROLE_LABELS: Record<Role, string> = {
   ADMIN: 'Administrador',
   LAB_TECHNICIAN: 'Técnico de laboratorio',
   EPIDEMIOLOGIST: 'Epidemiólogo',
+  PHARMACIST: 'Farmacéutico',
   PUBLIC_VIEWER: 'Consulta pública',
 }
 
