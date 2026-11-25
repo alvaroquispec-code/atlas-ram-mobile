@@ -187,3 +187,12 @@ export interface ResistanceAlert {
   baselinePercentage: number
   pValue: number
 }
+
+/** Normas con que se interpretan y agregan los resultados (GET /standards). */
+export interface Standards {
+  breakpoints: string
+  breakpointStandard: string
+  breakpointVersion: string
+  aggregation: string
+  expectedPhenotypes: string
+}

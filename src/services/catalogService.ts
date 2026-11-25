@@ -1,7 +1,12 @@
-import type { District, Facility, Microorganism, Page } from '../types/api'
+import type { District, Facility, Microorganism, Page, Standards } from '../types/api'
 import { apiClient } from './apiClient'
 
 export const catalogService = {
+  async standards(signal?: AbortSignal) {
+    const { data } = await apiClient.get<Standards>('/standards', { signal })
+    return data
+  },
+
   async districts(signal?: AbortSignal) {
     const { data } = await apiClient.get<Page<District>>('/districts', { params: { size: 100, sort: 'name' }, signal })
     return data.content
