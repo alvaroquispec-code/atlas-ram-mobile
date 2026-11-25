@@ -13,7 +13,7 @@ import { useFetch } from '../../hooks/useFetch'
 import { useToast } from '../../hooks/useToast'
 import { isolateService } from '../../services/isolateService'
 import { toApiError } from '../../utils/apiError'
-import { formatDate, SPECIMEN_LABELS } from '../../utils/labels'
+import { formatDate, formatMic, SPECIMEN_LABELS } from '../../utils/labels'
 import { colors, spacing } from '../../utils/theme'
 
 export default function IsolateDetailScreen() {
@@ -88,7 +88,7 @@ export default function IsolateDetailScreen() {
             <View style={styles.resultText}>
               <Text style={styles.antibiotic}>{result.antibioticName}</Text>
               <Text style={styles.muted}>
-                {result.micValue !== null ? `CIM ${result.micValue} µg/mL` : result.diskDiffusionMm !== null ? `Halo ${result.diskDiffusionMm} mm` : 'Sin valor'}
+                {result.micValue !== null ? `CIM ${formatMic(result.micDisplay, result.micValue)} µg/mL` : result.diskDiffusionMm !== null ? `Halo ${result.diskDiffusionMm} mm` : 'Sin valor'}
                 {' · '}
                 {result.breakpointStandard} {result.breakpointVersion}
               </Text>

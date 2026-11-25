@@ -46,3 +46,10 @@ export const normalizeName = (value: string) =>
     .replace(/^distrito de /i, '')
     .trim()
     .toLowerCase()
+
+/** ">=16" → "≥ 16", "<=0.25" → "≤ 0.25": el calificador indica que la CIM está fuera del rango del panel. */
+export function formatMic(display: string | null | undefined, value: number | null): string | null {
+  const text = display ?? (value === null ? null : String(value))
+  if (!text) return null
+  return text.replace(/^>=/, '≥ ').replace(/^<=/, '≤ ').replace(/^>/, '> ').replace(/^</, '< ')
+}

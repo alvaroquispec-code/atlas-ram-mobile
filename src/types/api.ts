@@ -76,6 +76,8 @@ export interface SusceptibilityResult {
   antibioticCode: string
   antibioticName: string
   micValue: number | null
+  /** CIM con su calificador tal como la informa el equipo, por ejemplo ">=16" o "<=0.25". */
+  micDisplay?: string | null
   diskDiffusionMm: number | null
   interpretation: Interpretation
   reportedInterpretation: Interpretation | null

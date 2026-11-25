@@ -42,7 +42,10 @@ export function toApiError(error: unknown): ApiError {
       )
     }
     const { status, data } = error.response as { status: number; data?: ApiErrorBody }
-    const serverMessage = status === 409 || status === 422 ? data?.message : undefined
+    // El backend redacta mensajes claros y sin detalles internos para los 4xx (GlobalExceptionHandler): se
+    // muestran tal cual. Para 401 y 5xx se usa el texto genérico.
+    const useServer = status >= 400 && status < 500 && status !== 401
+    const serverMessage = useServer && data?.message ? data.message : undefined
     const message = serverMessage ?? MESSAGES_BY_STATUS[status] ?? 'Ocurrió un error inesperado.'
     return new ApiError(message, status, data?.fieldErrors)
   }
