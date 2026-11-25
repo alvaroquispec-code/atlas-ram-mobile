@@ -149,7 +149,12 @@ export interface WiscaRegimen {
   probabilityAboveTarget: number
   probabilityBest: number
   untestedFrequency: number
+  /** Sin pruebas ni fenotipo esperado de EUCAST: se cuentan como no cubiertos. */
   untestedPathogens: string[]
+  /** Sin pruebas, sensibles esperados según EUCAST: se cuentan como cubiertos. */
+  expectedSusceptiblePathogens?: string[]
+  /** Sin pruebas, resistentes esperados según EUCAST: se cuentan como no cubiertos. */
+  expectedResistantPathogens?: string[]
 }
 
 export interface WiscaResult {

@@ -89,8 +89,21 @@ function RegimenRow({ regimen, best, target }: { regimen: WiscaRegimen; best: bo
         Entre {Math.round(low)} y {Math.round(high)} % (95 %) · {Math.round(regimen.probabilityBest * 100)} % de ser el mejor
         {best ? ' · mayor cobertura' : ''}
       </Text>
+      {(regimen.expectedResistantPathogens ?? []).length > 0 && (
+        <Text style={styles.meta}>
+          Resistencia esperada (EUCAST), sin probar: {regimen.expectedResistantPathogens?.join(', ')}
+        </Text>
+      )}
+      {(regimen.expectedSusceptiblePathogens ?? []).length > 0 && (
+        <Text style={styles.meta}>
+          Sensibilidad esperada (EUCAST), sin probar: {regimen.expectedSusceptiblePathogens?.join(', ')}
+        </Text>
+      )}
       {regimen.untestedPathogens.length > 0 && (
-        <Text style={styles.warning}>Sin pruebas contra: {regimen.untestedPathogens.join(', ')} (se cuentan como no cubiertos)</Text>
+        <Text style={styles.warning}>
+          Sin datos para {regimen.untestedPathogens.join(', ')} ({Math.round(regimen.untestedFrequency)} % de los casos): se
+          cuentan como no cubiertos; la cobertura real podría ser hasta {Math.round(regimen.untestedFrequency)} puntos mayor
+        </Text>
       )}
     </View>
   )
