@@ -7,6 +7,7 @@ import ErrorState from '../../components/ErrorState'
 import LoadingState from '../../components/LoadingState'
 import { useFetch } from '../../hooks/useFetch'
 import { antibiogramService } from '../../services/antibiogramService'
+import { catalogService } from '../../services/catalogService'
 import type { Syndrome, WiscaRegimen } from '../../types/api'
 import { colors, radius, spacing } from '../../utils/theme'
 
@@ -27,6 +28,8 @@ function coverageColor(percentage: number) {
 export default function TreatmentScreen() {
   const [syndrome, setSyndrome] = useState<Syndrome>('BACTEREMIA')
   const { data, error, isLoading, reload } = useFetch((signal) => antibiogramService.wisca(syndrome, signal), [syndrome])
+  // Normas con que se calculó: si falla, simplemente no se muestran.
+  const { data: standards } = useFetch((signal) => catalogService.standards(signal), [])
 
   return (
     <ScrollView contentContainerStyle={styles.content}>
@@ -63,6 +66,11 @@ export default function TreatmentScreen() {
             {data.regimens.map((r, index) => (
               <RegimenRow key={r.code} regimen={r} best={index === 0} target={data.targetCoverage} />
             ))}
+            {standards && (
+              <Text style={styles.meta}>
+                Puntos de corte: {standards.breakpoints} · Pares no probados: fenotipos esperados de EUCAST
+              </Text>
+            )}
           </Card>
         </>
       )}

@@ -39,7 +39,8 @@ export default function AlertsScreen() {
       <Card>
         <Text style={styles.title}>Alertas de brote</Text>
         <Text style={styles.muted}>
-          El laboratorio compara las últimas 4 semanas de cada hospital con sus propios 12 meses anteriores. Es una señal
+          Tras cada carga, se comparan las 4 semanas más recientes con datos de cada hospital con sus propios 12 meses
+          anteriores. Es una señal
           temprana: la confirmación es del comité de infecciones.
         </Text>
         <ChipSelect label="Estado" options={FILTERS} value={filter} onChange={setFilter} />
@@ -69,12 +70,14 @@ function AlertCard({ alert }: { alert: ResistanceAlert }) {
       </Text>
       <View style={styles.numbers}>
         <View style={styles.number}>
-          <Text style={styles.meta}>Últimas 4 semanas</Text>
+          <Text style={styles.meta}>
+            {formatDate(alert.windowStart)} – {formatDate(alert.windowEnd)}
+          </Text>
           <Text style={[styles.big, { color: colors.danger }]}>{Math.round(alert.observedPercentage)} %</Text>
           <Text style={styles.meta}>{alert.resistantCount} de {alert.testedCount}</Text>
         </View>
         <View style={styles.number}>
-          <Text style={styles.meta}>12 meses previos</Text>
+          <Text style={styles.meta}>12 meses antes</Text>
           <Text style={styles.big}>{Math.round(alert.baselinePercentage)} %</Text>
           <Text style={styles.meta}>{alert.baselineResistant} de {alert.baselineTested}</Text>
         </View>
