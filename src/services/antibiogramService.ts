@@ -1,4 +1,4 @@
-import type { AntibiogramEntry, ReferralAntibiogram } from '../types/api'
+import type { AntibiogramEntry, ReferralAntibiogram, Syndrome, WiscaResult } from '../types/api'
 import { SURVEILLANCE_PERIOD } from '../utils/config'
 import { apiClient } from './apiClient'
 
@@ -18,6 +18,16 @@ export const antibiogramService = {
     const { data } = await apiClient.get<ReferralAntibiogram>('/antibiogram/referral', {
       params: { districtId, ...SURVEILLANCE_PERIOD },
       signal,
+    })
+    return data
+  },
+
+  // WISCA: probabilidad de que cada esquema empírico cubra el síndrome (10 000 simulaciones en el servidor).
+  async wisca(syndrome: Syndrome, signal?: AbortSignal) {
+    const { data } = await apiClient.get<WiscaResult>('/antibiogram/wisca', {
+      params: { syndrome, ...SURVEILLANCE_PERIOD },
+      signal,
+      timeout: 30000,
     })
     return data
   },
