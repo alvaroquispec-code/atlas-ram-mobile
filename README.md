@@ -27,13 +27,13 @@ El porcentaje indica cuánto cumplió cada integrante de sus responsabilidades e
 |---|---|---|
 | Login y registro | Inicio de sesión con validación en tiempo real | `POST /auth/login`, `POST /auth/register`, `GET /auth/me` |
 | Mi zona | Detecta tu distrito y muestra qué antibióticos fallan más ahí. Si el distrito no reúne 30 resultados por combinación (CLSI M39), muestra la resistencia de los **hospitales donde se atienden sus pacientes** (`GET /antibiogram/referral`) y, si ni así alcanza, la de Lima y Callao. Nunca inventa un porcentaje con pocos casos. El selector manual de distrito tiene buscador (ignora tildes y mayúsculas) | **GPS** (expo-location) + **Nominatim** (API externa) + `GET /antibiogram?districtId=` |
-| Tratamiento | El médico elige el síndrome (bacteriemia, urinaria, respiratoria, piel, meningitis) y ve la probabilidad de que cada esquema empírico cubra el germen, con su intervalo creíble al 95 % y la probabilidad de ser el mejor (WISCA bayesiano). Es apoyo a la decisión, no una indicación | `GET /antibiogram/wisca` |
+| Tratamiento | El médico elige el síndrome (bacteriemia, urinaria, respiratoria, piel, meningitis) y ve la probabilidad de que cada esquema empírico cubra el germen, con su intervalo creíble al 95 % y la probabilidad de ser el mejor (WISCA bayesiano). Se puede calcular solo para un servicio (por ejemplo UCI, donde la resistencia es mayor). Es apoyo a la decisión, no una indicación | `GET /antibiogram/wisca?ward=` |
 | Alertas | Alertas de brote de los hospitales del usuario: % resistente de las últimas 4 semanas frente a los 12 meses previos y valor p. Solo la ven técnicos, epidemiólogos y administradores (la pestaña se oculta para el resto); deslizar hacia abajo recarga | `GET /alerts?status` |
 | Aislamientos | Lista con scroll infinito; filtros combinables por microorganismo y tipo de muestra, orden por fecha e "Ir al aislamiento N.º"; agitar el teléfono recarga | `GET /isolates?page&size&sort&microorganismId&specimen` + **acelerómetro** (expo-sensors) |
-| Detalle | Datos del aislamiento y su antibiograma; un ADMIN puede eliminarlo | `GET /isolates/{id}`, `GET /isolates/{id}/results`, `DELETE /isolates/{id}` |
+| Detalle | Datos del aislamiento (incluido el servicio) y su antibiograma, con la CIM y su calificador (≥ 16); un ADMIN puede eliminarlo | `GET /isolates/{id}`, `GET /isolates/{id}/results`, `DELETE /isolates/{id}` |
 | Escanear | Lee el QR de la etiqueta de la muestra y abre su detalle | **Cámara** (expo-camera) |
-| Registrar | Formulario para técnicos de laboratorio | `POST /isolates` |
-| Perfil | Datos del usuario y cierre de sesión | — |
+| Registrar | Formulario para técnicos de laboratorio, con servicio del paciente opcional | `POST /isolates` |
+| Perfil | Datos del usuario, cambio de contraseña, cierre de sesión y "cerrar sesión en todos los dispositivos". La sesión se verifica al volver a la app y cada 30 s, así que un cambio de contraseña la cierra en los demás teléfonos | `PUT /auth/me/password`, `POST /auth/me/logout-all` |
 
 Cada sensor tiene una alternativa: si niegas el GPS eliges el distrito a mano, si no hay cámara escribes el número del aislamiento, y si no hay acelerómetro se recarga deslizando hacia abajo.
 
