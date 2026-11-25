@@ -144,6 +144,8 @@ export interface CreateIsolatePayload {
   facilityId: number
   microorganismId: number
   ward: Ward
+  /** Antibiograma: se guarda junto con el aislamiento (al menos uno). */
+  results: { antibioticId: number; mic?: string; reportedInterpretation?: Interpretation }[]
 }
 export type Syndrome = 'BACTEREMIA' | 'URINARY' | 'RESPIRATORY' | 'SKIN_SOFT_TISSUE' | 'MENINGITIS'
 

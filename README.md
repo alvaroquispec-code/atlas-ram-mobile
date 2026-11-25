@@ -32,7 +32,7 @@ El porcentaje indica cuánto cumplió cada integrante de sus responsabilidades e
 | Aislamientos | Lista con scroll infinito; filtros combinables por microorganismo y tipo de muestra, orden por fecha e "Ir al aislamiento N.º"; agitar el teléfono recarga | `GET /isolates?page&size&sort&microorganismId&specimen` + **acelerómetro** (expo-sensors) |
 | Detalle | Datos del aislamiento (incluido el servicio) y su antibiograma, con la CIM y su calificador (≥ 16); un ADMIN puede eliminarlo | `GET /isolates/{id}`, `GET /isolates/{id}/results`, `DELETE /isolates/{id}` |
 | Escanear | Lee el QR de la etiqueta de la muestra y abre su detalle | **Cámara** (expo-camera) |
-| Registrar | Formulario para técnicos de laboratorio, con servicio del paciente opcional | `POST /isolates` |
+| Registrar | Un paciente con su antibiograma: un campo por antibiótico que acepta la CIM (≤0,25 · 2 · ≥16) o la lectura S/I/R; sexo, edad y servicio obligatorios (variables mínimas del INS). Se guarda todo junto o nada | `POST /isolates` |
 | Perfil | Datos del usuario, cambio de contraseña, cierre de sesión y "cerrar sesión en todos los dispositivos". La sesión se verifica al volver a la app y cada 30 s, así que un cambio de contraseña la cierra en los demás teléfonos | `PUT /auth/me/password`, `POST /auth/me/logout-all` |
 
 Cada sensor tiene una alternativa: si niegas el GPS eliges el distrito a mano, si no hay cámara escribes el número del aislamiento, y si no hay acelerómetro se recarga deslizando hacia abajo.

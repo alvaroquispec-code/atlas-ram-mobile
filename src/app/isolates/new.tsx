@@ -1,6 +1,6 @@
 import { router } from 'expo-router'
 import { useEffect, useMemo, useState } from 'react'
-import { StyleSheet, Text } from 'react-native'
+import { StyleSheet, Text, TextInput, View } from 'react-native'
 import Banner from '../../components/Banner'
 import Button from '../../components/Button'
 import ChipSelect from '../../components/ChipSelect'
@@ -13,7 +13,7 @@ import { useForm, type Validators } from '../../hooks/useForm'
 import { useToast } from '../../hooks/useToast'
 import { catalogService, microorganismLabel } from '../../services/catalogService'
 import { isolateService } from '../../services/isolateService'
-import type { Specimen, Ward } from '../../types/api'
+import type { Interpretation, Specimen, Ward } from '../../types/api'
 import { toApiError } from '../../utils/apiError'
 import { SPECIMEN_LABELS, todayIso, WARD_LABELS } from '../../utils/labels'
 import { colors } from '../../utils/theme'
@@ -51,7 +51,8 @@ const SEX_OPTIONS = [
 export default function NewIsolateScreen() {
   const { showToast } = useToast()
   const catalogs = useFetch(
-    (signal) => Promise.all([catalogService.myFacilities(signal), catalogService.microorganisms(signal)]),
+    (signal) =>
+      Promise.all([catalogService.myFacilities(signal), catalogService.microorganisms(signal), catalogService.antibiotics(signal)]),
     [],
   )
   const { values, errors, setValue, submit, setServerErrors } = useForm<IsolateForm>(
@@ -61,7 +62,11 @@ export default function NewIsolateScreen() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [formError, setFormError] = useState<string | null>(null)
 
-  const [facilities, microorganisms] = catalogs.data ?? [[], []]
+  const [facilities, microorganisms, antibiotics] = catalogs.data ?? [[], [], []]
+  // Antibiograma: un campo por antibiótico; acepta la CIM ("<=0.25", "2", ">=16") o la interpretación (S, I, R).
+  const [results, setResults] = useState<Record<number, string>>({})
+  const [resultsError, setResultsError] = useState<string | null>(null)
+  const filledResults = Object.entries(results).filter(([, v]) => v.trim() !== '')
   const facilityOptions = useMemo(() => facilities.map((f) => ({ value: String(f.id), label: f.code })), [facilities])
   const microorganismOptions = useMemo(
     () => microorganisms.map((m) => ({ value: String(m.id), label: microorganismLabel(m) })),
@@ -75,6 +80,11 @@ export default function NewIsolateScreen() {
   }, [facilities, values.facilityId, setValue])
 
   const onSubmit = submit(async (form) => {
+    if (filledResults.length === 0) {
+      setResultsError('Registra al menos un antibiótico del antibiograma')
+      return
+    }
+    setResultsError(null)
     setIsSubmitting(true)
     setFormError(null)
     try {
@@ -86,6 +96,7 @@ export default function NewIsolateScreen() {
         facilityId: Number(form.facilityId),
         microorganismId: Number(form.microorganismId),
         ward: form.ward as Ward,
+        results: filledResults.map(([id, value]) => toResult(Number(id), value)),
       })
       showToast('Aislamiento registrado')
       router.replace(`/isolates/${created.id}`)
@@ -121,11 +132,54 @@ export default function NewIsolateScreen() {
       <ChipSelect label="Sexo" options={SEX_OPTIONS} value={values.patientSex || null} onChange={setValue('patientSex')} error={errors.patientSex} />
       <ChipSelect label="Servicio" options={WARD_OPTIONS} value={values.ward || null} onChange={setValue('ward')} error={errors.ward} />
 
+      <Text style={styles.section}>Antibiograma</Text>
+      <Text style={styles.hint}>
+        Escribe la CIM como la informa el equipo (≤0,25 · 2 · ≥16) o, si solo tienes la lectura, S, I o R. Deja en
+        blanco los no probados. {filledResults.length} con resultado.
+      </Text>
+      {resultsError && <Text style={styles.error}>{resultsError}</Text>}
+      <View style={styles.results}>
+        {antibiotics.map((a) => (
+          <View key={a.id} style={styles.resultRow}>
+            <Text style={styles.resultName}>{a.name}</Text>
+            <TextInput
+              accessibilityLabel={`CIM o interpretación de ${a.name}`}
+              value={results[a.id] ?? ''}
+              onChangeText={(v) => setResults((r) => ({ ...r, [a.id]: v }))}
+              placeholder="—"
+              placeholderTextColor={colors.muted}
+              autoCapitalize="characters"
+              style={styles.resultInput}
+            />
+          </View>
+        ))}
+      </View>
+
       <Button title="Registrar aislamiento" onPress={onSubmit} isLoading={isSubmitting} />
     </FormScreen>
   )
 }
 
+const INTERPRETATIONS: Record<string, Interpretation> = {
+  S: 'SUSCEPTIBLE', SENSIBLE: 'SUSCEPTIBLE', I: 'INTERMEDIATE', INTERMEDIO: 'INTERMEDIATE', R: 'RESISTANT', RESISTENTE: 'RESISTANT',
+}
+
+// "S", "I" o "R" es la lectura del laboratorio; cualquier otra cosa es una CIM y la interpreta el servidor.
+function toResult(antibioticId: number, raw: string) {
+  const value = raw.trim()
+  const interpretation = INTERPRETATIONS[value.toUpperCase()]
+  return interpretation ? { antibioticId, reportedInterpretation: interpretation } : { antibioticId, mic: value }
+}
+
 const styles = StyleSheet.create({
   hint: { color: colors.muted, fontSize: 13, marginTop: -8 },
+  section: { fontSize: 16, fontWeight: '700', color: colors.text, marginTop: 8 },
+  error: { color: colors.danger, fontSize: 13 },
+  results: { gap: 6 },
+  resultRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
+  resultName: { flex: 1, color: colors.text, fontSize: 15 },
+  resultInput: {
+    width: 110, minHeight: 40, borderWidth: 1, borderColor: colors.border, borderRadius: 8,
+    paddingHorizontal: 10, color: colors.text, textAlign: 'center',
+  },
 })

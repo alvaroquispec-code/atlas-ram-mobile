@@ -1,4 +1,4 @@
-import type { District, Facility, Microorganism, Page, Standards } from '../types/api'
+import type { Antibiotic, District, Facility, Microorganism, Page, Standards } from '../types/api'
 import { apiClient } from './apiClient'
 
 export const catalogService = {
@@ -29,10 +29,15 @@ export const catalogService = {
     }
   },
 
+  async antibiotics(signal?: AbortSignal) {
+    const { data } = await apiClient.get<Page<Antibiotic>>('/antibiotics', { params: { size: 100, sort: 'name' }, signal })
+    return data.content
+  },
+
   async microorganisms(signal?: AbortSignal) {
     const { data } = await apiClient.get<Page<Microorganism>>('/microorganisms', { params: { size: 100 }, signal })
     return data.content
   },
 }
 
-export const microorganismLabel = (m: Microorganism) => `${m.genus} ${m.species ?? ''}`.trim()
+export const microorganismLabel = (m: Microorganism) => `${m.genus} ${m.species ?? ''}`.trim()
