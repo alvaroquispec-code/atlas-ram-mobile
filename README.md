@@ -8,7 +8,7 @@ App en React Native (Expo SDK 58) del sistema de vigilancia de resistencia antim
 | **API** | https://3-85-201-152.sslip.io/api/v1 |
 | **Web** | https://atlas-ram-web.vercel.app |
 
-Usuario de prueba: `admin@atlasram.test` / `AtlasRam2026!` (datos de demostración).
+**Cuentas de demostración.** Cualquiera puede crear una cuenta desde *Registrarse*; el servidor siempre le asigna el rol de solo lectura. Las cuentas con rol de laboratorio, epidemiología, farmacia o administración del despliegue público tienen una contraseña privada que se entrega a los evaluadores a pedido. En un entorno local, el seed del backend crea esas cuentas con la contraseña indicada en [`db/seed/CALIBRACION.md`](https://github.com/alvaroquispec-code/atlas-ram-backend/blob/main/db/seed/CALIBRACION.md).
 
 ## Integrantes y participación
 
