@@ -13,7 +13,7 @@ import { useFetch } from '../../hooks/useFetch'
 import { useToast } from '../../hooks/useToast'
 import { isolateService } from '../../services/isolateService'
 import { toApiError } from '../../utils/apiError'
-import { formatDate, formatMic, SPECIMEN_LABELS } from '../../utils/labels'
+import { formatDate, formatMic, SPECIMEN_LABELS, WARD_LABELS } from '../../utils/labels'
 import { colors, spacing } from '../../utils/theme'
 
 export default function IsolateDetailScreen() {
@@ -73,6 +73,7 @@ export default function IsolateDetailScreen() {
         <Text style={styles.organism}>{isolate.microorganismName}</Text>
         <InfoRow label="Fecha de toma" value={formatDate(isolate.collectionDate)} />
         <InfoRow label="Muestra" value={SPECIMEN_LABELS[isolate.specimenType]} />
+        <InfoRow label="Servicio" value={isolate.ward ? WARD_LABELS[isolate.ward] : '—'} />
         <InfoRow label="Establecimiento" value={isolate.facilityName} />
         <InfoRow label="Distrito" value={isolate.districtName} />
         <InfoRow label="Edad" value={isolate.patientAge === null ? '—' : `${isolate.patientAge} años`} />
@@ -119,4 +120,4 @@ const styles = StyleSheet.create({
   resultText: { flex: 1, gap: 2 },
   antibiotic: { fontSize: 15, color: colors.text },
   muted: { fontSize: 13, color: colors.muted },
-})
+})

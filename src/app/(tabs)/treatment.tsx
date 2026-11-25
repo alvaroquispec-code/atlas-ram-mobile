@@ -8,7 +8,8 @@ import LoadingState from '../../components/LoadingState'
 import { useFetch } from '../../hooks/useFetch'
 import { antibiogramService } from '../../services/antibiogramService'
 import { catalogService } from '../../services/catalogService'
-import type { Syndrome, WiscaRegimen } from '../../types/api'
+import type { Syndrome, Ward, WiscaRegimen } from '../../types/api'
+import { WARD_LABELS } from '../../utils/labels'
 import { colors, radius, spacing } from '../../utils/theme'
 
 const SYNDROMES: { value: Syndrome; label: string }[] = [
@@ -19,6 +20,12 @@ const SYNDROMES: { value: Syndrome; label: string }[] = [
   { value: 'MENINGITIS', label: 'Meningitis' },
 ]
 
+// "ALL" = todos los servicios. La UCI suele tener mucha más resistencia que el promedio.
+const WARDS: { value: Ward | 'ALL'; label: string }[] = [
+  { value: 'ALL', label: 'Todos' },
+  ...(Object.keys(WARD_LABELS) as Ward[]).map((w) => ({ value: w, label: WARD_LABELS[w] })),
+]
+
 function coverageColor(percentage: number) {
   if (percentage >= 90) return colors.success
   if (percentage >= 70) return colors.warning
@@ -27,7 +34,11 @@ function coverageColor(percentage: number) {
 
 export default function TreatmentScreen() {
   const [syndrome, setSyndrome] = useState<Syndrome>('BACTEREMIA')
-  const { data, error, isLoading, reload } = useFetch((signal) => antibiogramService.wisca(syndrome, signal), [syndrome])
+  const [ward, setWard] = useState<Ward | 'ALL'>('ALL')
+  const { data, error, isLoading, reload } = useFetch(
+    (signal) => antibiogramService.wisca(syndrome, ward === 'ALL' ? null : ward, signal),
+    [syndrome, ward],
+  )
   // Normas con que se calculó: si falla, simplemente no se muestran.
   const { data: standards } = useFetch((signal) => catalogService.standards(signal), [])
 
@@ -40,6 +51,7 @@ export default function TreatmentScreen() {
           los gérmenes y la resistencia de Lima y Callao (WISCA bayesiano).
         </Text>
         <ChipSelect label="Síndrome" options={SYNDROMES} value={syndrome} onChange={setSyndrome} />
+        <ChipSelect label="Servicio" options={WARDS} value={ward} onChange={setWard} />
       </Card>
 
       <Banner tone="info" message="Es un apoyo a la decisión, no una indicación de tratamiento. La decisión es del médico tratante." />

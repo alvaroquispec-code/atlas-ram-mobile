@@ -68,7 +68,11 @@ export interface Isolate {
   districtName: string
   microorganismName: string
   dataUploadId: number | null
+  /** Servicio del paciente; null si el laboratorio no lo informó. */
+  ward?: Ward | null
 }
+
+export type Ward = 'OUTPATIENT' | 'EMERGENCY' | 'INPATIENT' | 'ICU'
 
 export interface SusceptibilityResult {
   id: number
@@ -139,6 +143,7 @@ export interface CreateIsolatePayload {
   patientSex: 'M' | 'F' | null
   facilityId: number
   microorganismId: number
+  ward?: Ward | null
 }
 export type Syndrome = 'BACTEREMIA' | 'URINARY' | 'RESPIRATORY' | 'SKIN_SOFT_TISSUE' | 'MENINGITIS'
 

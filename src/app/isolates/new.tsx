@@ -13,9 +13,9 @@ import { useForm, type Validators } from '../../hooks/useForm'
 import { useToast } from '../../hooks/useToast'
 import { catalogService, microorganismLabel } from '../../services/catalogService'
 import { isolateService } from '../../services/isolateService'
-import type { Specimen } from '../../types/api'
+import type { Specimen, Ward } from '../../types/api'
 import { toApiError } from '../../utils/apiError'
-import { SPECIMEN_LABELS, todayIso } from '../../utils/labels'
+import { SPECIMEN_LABELS, todayIso, WARD_LABELS } from '../../utils/labels'
 import { colors } from '../../utils/theme'
 import { optionalAge, pastOrTodayDate, required } from '../../utils/validators'
 
@@ -27,6 +27,7 @@ type IsolateForm = {
   patientSex: string
   facilityId: string
   microorganismId: string
+  ward: string
 }
 
 const validators: Validators<IsolateForm> = {
@@ -38,6 +39,7 @@ const validators: Validators<IsolateForm> = {
 }
 
 const SPECIMEN_OPTIONS = (Object.keys(SPECIMEN_LABELS) as Specimen[]).map((value) => ({ value, label: SPECIMEN_LABELS[value] }))
+const WARD_OPTIONS = (Object.keys(WARD_LABELS) as Ward[]).map((value) => ({ value, label: WARD_LABELS[value] }))
 const SEX_OPTIONS = [
   { value: 'F', label: 'Femenino' },
   { value: 'M', label: 'Masculino' },
@@ -50,7 +52,7 @@ export default function NewIsolateScreen() {
     [],
   )
   const { values, errors, setValue, submit, setServerErrors } = useForm<IsolateForm>(
-    { collectionDate: todayIso(), specimenType: '', patientAge: '', patientSex: '', facilityId: '', microorganismId: '' },
+    { collectionDate: todayIso(), specimenType: '', patientAge: '', patientSex: '', facilityId: '', microorganismId: '', ward: '' },
     validators,
   )
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -80,6 +82,7 @@ export default function NewIsolateScreen() {
         patientSex: form.patientSex ? (form.patientSex as 'M' | 'F') : null,
         facilityId: Number(form.facilityId),
         microorganismId: Number(form.microorganismId),
+        ward: form.ward ? (form.ward as Ward) : null,
       })
       showToast('Aislamiento registrado')
       router.replace(`/isolates/${created.id}`)
@@ -113,6 +116,7 @@ export default function NewIsolateScreen() {
       {selectedFacility && <Text style={styles.hint}>{selectedFacility.name} · {selectedFacility.districtName}</Text>}
       <TextField label="Edad del paciente (opcional)" value={values.patientAge} onChangeText={setValue('patientAge')} error={errors.patientAge} keyboardType="number-pad" placeholder="Ej. 34" />
       <ChipSelect label="Sexo (opcional)" options={SEX_OPTIONS} value={values.patientSex || null} onChange={setValue('patientSex')} />
+      <ChipSelect label="Servicio (opcional)" options={WARD_OPTIONS} value={values.ward || null} onChange={setValue('ward')} />
 
       <Button title="Registrar aislamiento" onPress={onSubmit} isLoading={isSubmitting} />
     </FormScreen>

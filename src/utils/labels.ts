@@ -1,4 +1,4 @@
-import type { Interpretation, Role, Specimen } from '../types/api'
+import type { Interpretation, Role, Specimen, Ward } from '../types/api'
 
 export const SPECIMEN_LABELS: Record<Specimen, string> = {
   BLOOD: 'Sangre',
@@ -8,6 +8,13 @@ export const SPECIMEN_LABELS: Record<Specimen, string> = {
   CSF: 'Líquido cefalorraquídeo',
   STOOL: 'Heces',
   OTHER: 'Otra',
+}
+
+export const WARD_LABELS: Record<Ward, string> = {
+  ICU: 'UCI',
+  INPATIENT: 'Hospitalización',
+  EMERGENCY: 'Emergencia',
+  OUTPATIENT: 'Consulta externa',
 }
 
 export const INTERPRETATION_LABELS: Record<Interpretation, string> = {
