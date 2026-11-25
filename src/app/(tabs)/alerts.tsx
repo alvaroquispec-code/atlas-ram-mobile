@@ -71,7 +71,7 @@ function AlertCard({ alert }: { alert: ResistanceAlert }) {
       <View style={styles.numbers}>
         <View style={styles.number}>
           <Text style={styles.meta}>
-            {formatDate(alert.windowStart)} – {formatDate(alert.windowEnd)}
+            Última ventana: {formatDate(alert.windowStart)} – {formatDate(alert.windowEnd)}
           </Text>
           <Text style={[styles.big, { color: colors.danger }]}>{Math.round(alert.observedPercentage)} %</Text>
           <Text style={styles.meta}>{alert.resistantCount} de {alert.testedCount}</Text>
