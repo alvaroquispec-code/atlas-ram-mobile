@@ -40,4 +40,4 @@ yarn-error.*
 
 
 # variables de entorno (la URL real va aquí, no en el código)
-.env
+.env.env*.bak
