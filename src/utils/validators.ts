@@ -24,8 +24,15 @@ export const pastOrTodayDate: Validator = (value) => {
   return value > todayIso() ? 'La fecha no puede ser futura' : undefined
 }
 
+// Edad obligatoria: el INS la exige en sus variables mínimas para WHONET-INS.
+export const requiredAge: Validator = (value) => {
+  if (!value.trim()) return 'Indica la edad del paciente'
+  const age = Number(value)
+  return Number.isInteger(age) && age >= 0 && age <= 120 ? undefined : 'Edad entre 0 y 120'
+}
+
 export const optionalAge: Validator = (value) => {
   if (!value.trim()) return undefined
   const age = Number(value)
   return Number.isInteger(age) && age >= 0 && age <= 120 ? undefined : 'Edad entre 0 y 120'
-}
+}

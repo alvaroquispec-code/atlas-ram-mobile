@@ -17,7 +17,7 @@ import type { Specimen, Ward } from '../../types/api'
 import { toApiError } from '../../utils/apiError'
 import { SPECIMEN_LABELS, todayIso, WARD_LABELS } from '../../utils/labels'
 import { colors } from '../../utils/theme'
-import { optionalAge, pastOrTodayDate, required } from '../../utils/validators'
+import { pastOrTodayDate, required, requiredAge } from '../../utils/validators'
 
 // Todos los valores del formulario son texto; los convertimos al enviar.
 type IsolateForm = {
@@ -33,7 +33,10 @@ type IsolateForm = {
 const validators: Validators<IsolateForm> = {
   collectionDate: pastOrTodayDate,
   specimenType: required('Elige el tipo de muestra'),
-  patientAge: optionalAge,
+  // Sexo, edad y servicio: variables mínimas obligatorias del INS para la vigilancia nacional (WHONET-INS).
+  patientAge: requiredAge,
+  patientSex: required('Elige el sexo del paciente'),
+  ward: required('Elige el servicio del paciente'),
   facilityId: required('Elige el establecimiento'),
   microorganismId: required('Elige el microorganismo'),
 }
@@ -78,11 +81,11 @@ export default function NewIsolateScreen() {
       const created = await isolateService.create({
         collectionDate: form.collectionDate,
         specimenType: form.specimenType as Specimen,
-        patientAge: form.patientAge ? Number(form.patientAge) : null,
-        patientSex: form.patientSex ? (form.patientSex as 'M' | 'F') : null,
+        patientAge: Number(form.patientAge),
+        patientSex: form.patientSex as 'M' | 'F',
         facilityId: Number(form.facilityId),
         microorganismId: Number(form.microorganismId),
-        ward: form.ward ? (form.ward as Ward) : null,
+        ward: form.ward as Ward,
       })
       showToast('Aislamiento registrado')
       router.replace(`/isolates/${created.id}`)
@@ -114,9 +117,9 @@ export default function NewIsolateScreen() {
       <ChipSelect label="Microorganismo" options={microorganismOptions} value={values.microorganismId || null} onChange={setValue('microorganismId')} error={errors.microorganismId} />
       <ChipSelect label="Establecimiento" options={facilityOptions} value={values.facilityId || null} onChange={setValue('facilityId')} error={errors.facilityId} />
       {selectedFacility && <Text style={styles.hint}>{selectedFacility.name} · {selectedFacility.districtName}</Text>}
-      <TextField label="Edad del paciente (opcional)" value={values.patientAge} onChangeText={setValue('patientAge')} error={errors.patientAge} keyboardType="number-pad" placeholder="Ej. 34" />
-      <ChipSelect label="Sexo (opcional)" options={SEX_OPTIONS} value={values.patientSex || null} onChange={setValue('patientSex')} />
-      <ChipSelect label="Servicio (opcional)" options={WARD_OPTIONS} value={values.ward || null} onChange={setValue('ward')} />
+      <TextField label="Edad del paciente" value={values.patientAge} onChangeText={setValue('patientAge')} error={errors.patientAge} keyboardType="number-pad" placeholder="Ej. 34" />
+      <ChipSelect label="Sexo" options={SEX_OPTIONS} value={values.patientSex || null} onChange={setValue('patientSex')} error={errors.patientSex} />
+      <ChipSelect label="Servicio" options={WARD_OPTIONS} value={values.ward || null} onChange={setValue('ward')} error={errors.ward} />
 
       <Button title="Registrar aislamiento" onPress={onSubmit} isLoading={isSubmitting} />
     </FormScreen>

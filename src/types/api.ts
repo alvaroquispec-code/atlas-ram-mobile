@@ -139,11 +139,11 @@ export interface ReferralAntibiogram {
 export interface CreateIsolatePayload {
   collectionDate: string
   specimenType: Specimen
-  patientAge: number | null
-  patientSex: 'M' | 'F' | null
+  patientAge: number
+  patientSex: 'M' | 'F'
   facilityId: number
   microorganismId: number
-  ward?: Ward | null
+  ward: Ward
 }
 export type Syndrome = 'BACTEREMIA' | 'URINARY' | 'RESPIRATORY' | 'SKIN_SOFT_TISSUE' | 'MENINGITIS'
 
