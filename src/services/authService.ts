@@ -37,5 +37,20 @@ export const authService = {
     return data
   },
 
+  // El servidor revoca las demás sesiones y devuelve tokens nuevos para esta.
+  async changePassword(currentPassword: string, newPassword: string): Promise<void> {
+    const { data } = await apiClient.put<AuthResponse>('/auth/me/password', { currentPassword, newPassword })
+    await tokenStorage.save(data)
+  },
+
+  // Invalida en el servidor todos los tokens del usuario (también los de este celular).
+  async logoutAll(): Promise<void> {
+    try {
+      await apiClient.post('/auth/me/logout-all')
+    } finally {
+      await tokenStorage.clear()
+    }
+  },
+
   logout: () => tokenStorage.clear(),
 }
