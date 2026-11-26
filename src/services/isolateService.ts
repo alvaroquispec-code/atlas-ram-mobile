@@ -1,4 +1,12 @@
-import type { CreateIsolatePayload, Isolate, Page, Specimen, SusceptibilityResult } from '../types/api'
+import type {
+  CreateIsolatePayload,
+  Interpretation,
+  InterpretationPreview,
+  Isolate,
+  Page,
+  Specimen,
+  SusceptibilityResult,
+} from '../types/api'
 import { apiClient } from './apiClient'
 
 export type IsolateSort = 'collectionDate,desc' | 'collectionDate,asc'
@@ -38,6 +46,15 @@ export const isolateService = {
   // Antibióticos que llegan después: se agregan todos o ninguno.
   async addResults(id: number, results: CreateIsolatePayload['results']) {
     const { data } = await apiClient.post<Isolate>(`/isolates/${id}/results`, { results })
+    return data
+  },
+
+  /** Interpretación S/I/R que tendría un resultado, con la misma lógica que al guardar; no guarda nada. */
+  async previewInterpretation(
+    params: { microorganismId: number; antibioticId: number; specimen?: Specimen; mic?: string; reported?: Interpretation },
+    signal?: AbortSignal,
+  ) {
+    const { data } = await apiClient.get<InterpretationPreview>('/isolates/interpretation-preview', { params, signal })
     return data
   },
 

@@ -62,6 +62,8 @@ export default function AddResultsScreen() {
       <AntibiogramEditor
         antibiotics={antibiotics}
         rows={rows}
+        microorganismId={isolate.microorganismId}
+        specimen={isolate.specimenType}
         onChange={(r) => { setRows(r); setFormError(null) }}
         excludeCodes={results.map((r) => r.antibioticCode)}
       />
