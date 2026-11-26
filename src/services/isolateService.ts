@@ -35,6 +35,12 @@ export const isolateService = {
     return data
   },
 
+  // Antibióticos que llegan después: se agregan todos o ninguno.
+  async addResults(id: number, results: CreateIsolatePayload['results']) {
+    const { data } = await apiClient.post<Isolate>(`/isolates/${id}/results`, { results })
+    return data
+  },
+
   async remove(id: number) {
     await apiClient.delete(`/isolates/${id}`)
   },

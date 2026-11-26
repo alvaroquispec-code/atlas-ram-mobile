@@ -1,6 +1,7 @@
-import { router } from 'expo-router'
+import { router, useLocalSearchParams } from 'expo-router'
 import { useEffect, useMemo, useState } from 'react'
-import { StyleSheet, Text, TextInput, View } from 'react-native'
+import { StyleSheet, Text } from 'react-native'
+import AntibiogramEditor from '../../components/AntibiogramEditor'
 import Banner from '../../components/Banner'
 import Button from '../../components/Button'
 import ChipSelect from '../../components/ChipSelect'
@@ -13,7 +14,8 @@ import { useForm, type Validators } from '../../hooks/useForm'
 import { useToast } from '../../hooks/useToast'
 import { catalogService, microorganismLabel } from '../../services/catalogService'
 import { isolateService } from '../../services/isolateService'
-import type { Interpretation, Specimen, Ward } from '../../types/api'
+import type { Specimen, Ward } from '../../types/api'
+import { emptyRowError, toPayload, type EntryRow } from '../../utils/antibiogram'
 import { toApiError } from '../../utils/apiError'
 import { SPECIMEN_LABELS, todayIso, WARD_LABELS } from '../../utils/labels'
 import { colors } from '../../utils/theme'
@@ -28,6 +30,7 @@ type IsolateForm = {
   facilityId: string
   microorganismId: string
   ward: string
+  patientId: string
 }
 
 const validators: Validators<IsolateForm> = {
@@ -50,23 +53,42 @@ const SEX_OPTIONS = [
 
 export default function NewIsolateScreen() {
   const { showToast } = useToast()
+  // ?from=ID: otro aislamiento del mismo paciente; el formulario se llena con sus datos.
+  const { from } = useLocalSearchParams<{ from?: string }>()
+  const fromId = Number(from) || null
   const catalogs = useFetch(
     (signal) =>
       Promise.all([catalogService.myFacilities(signal), catalogService.microorganisms(signal), catalogService.antibiotics(signal)]),
     [],
   )
   const { values, errors, setValue, submit, setServerErrors } = useForm<IsolateForm>(
-    { collectionDate: todayIso(), specimenType: '', patientAge: '', patientSex: '', facilityId: '', microorganismId: '', ward: '' },
+    { collectionDate: todayIso(), specimenType: '', patientAge: '', patientSex: '', facilityId: '', microorganismId: '', ward: '', patientId: '' },
     validators,
   )
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [formError, setFormError] = useState<string | null>(null)
 
   const [facilities, microorganisms, antibiotics] = catalogs.data ?? [[], [], []]
-  // Antibiograma: un campo por antibiótico; acepta la CIM ("<=0.25", "2", ">=16") o la interpretación (S, I, R).
-  const [results, setResults] = useState<Record<number, string>>({})
+  const [rows, setRows] = useState<EntryRow[]>([])
   const [resultsError, setResultsError] = useState<string | null>(null)
-  const filledResults = Object.entries(results).filter(([, v]) => v.trim() !== '')
+
+  useEffect(() => {
+    if (!fromId) return
+    const controller = new AbortController()
+    isolateService
+      .findById(fromId, controller.signal)
+      .then((i) => {
+        setValue('collectionDate')(i.collectionDate)
+        setValue('specimenType')(i.specimenType)
+        if (i.facilityId) setValue('facilityId')(String(i.facilityId))
+        if (i.patientAge !== null) setValue('patientAge')(String(i.patientAge))
+        if (i.patientSex === 'M' || i.patientSex === 'F') setValue('patientSex')(i.patientSex)
+        if (i.ward) setValue('ward')(i.ward)
+      })
+      .catch(() => undefined)
+    return () => controller.abort()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fromId])
   const facilityOptions = useMemo(() => facilities.map((f) => ({ value: String(f.id), label: f.code })), [facilities])
   const microorganismOptions = useMemo(
     () => microorganisms.map((m) => ({ value: String(m.id), label: microorganismLabel(m) })),
@@ -80,8 +102,9 @@ export default function NewIsolateScreen() {
   }, [facilities, values.facilityId, setValue])
 
   const onSubmit = submit(async (form) => {
-    if (filledResults.length === 0) {
-      setResultsError('Registra al menos un antibiótico del antibiograma')
+    const problem = rows.length === 0 ? 'Agrega al menos un antibiótico del antibiograma' : emptyRowError(rows, antibiotics)
+    if (problem) {
+      setResultsError(problem)
       return
     }
     setResultsError(null)
@@ -96,7 +119,9 @@ export default function NewIsolateScreen() {
         facilityId: Number(form.facilityId),
         microorganismId: Number(form.microorganismId),
         ward: form.ward as Ward,
-        results: filledResults.map(([id, value]) => toResult(Number(id), value)),
+        results: toPayload(rows),
+        patientId: form.patientId.trim() || undefined,
+        samePatientAsIsolateId: fromId ?? undefined,
       })
       showToast('Aislamiento registrado')
       router.replace(`/isolates/${created.id}`)
@@ -114,6 +139,7 @@ export default function NewIsolateScreen() {
 
   return (
     <FormScreen>
+      {fromId && <Banner tone="info" message={`Otro aislamiento del paciente del #${fromId}: se copiaron sus datos. Elige el microorganismo y su antibiograma.`} />}
       {formError && <Banner message={formError} />}
 
       <TextField
@@ -132,54 +158,32 @@ export default function NewIsolateScreen() {
       <ChipSelect label="Sexo" options={SEX_OPTIONS} value={values.patientSex || null} onChange={setValue('patientSex')} error={errors.patientSex} />
       <ChipSelect label="Servicio" options={WARD_OPTIONS} value={values.ward || null} onChange={setValue('ward')} error={errors.ward} />
 
+      {!fromId && (
+        <TextField
+          label="Historia clínica o DNI (opcional)"
+          value={values.patientId}
+          onChangeText={setValue('patientId')}
+          error={errors.patientId}
+          hint="No se guarda: solo un seudónimo, para contar un aislamiento por paciente"
+          autoCapitalize="characters"
+        />
+      )}
+
       <Text style={styles.section}>Antibiograma</Text>
       <Text style={styles.hint}>
-        Escribe la CIM como la informa el equipo (≤0,25 · 2 · ≥16) o, si solo tienes la lectura, S, I o R. Deja en
-        blanco los no probados. {filledResults.length} con resultado.
+        Agrega solo los antibióticos probados. Elige ≤, = o ≥ y escribe la CIM; si solo tienes la lectura del laboratorio,
+        marca S, I o R.
       </Text>
       {resultsError && <Text style={styles.error}>{resultsError}</Text>}
-      <View style={styles.results}>
-        {antibiotics.map((a) => (
-          <View key={a.id} style={styles.resultRow}>
-            <Text style={styles.resultName}>{a.name}</Text>
-            <TextInput
-              accessibilityLabel={`CIM o interpretación de ${a.name}`}
-              value={results[a.id] ?? ''}
-              onChangeText={(v) => setResults((r) => ({ ...r, [a.id]: v }))}
-              placeholder="—"
-              placeholderTextColor={colors.muted}
-              autoCapitalize="characters"
-              style={styles.resultInput}
-            />
-          </View>
-        ))}
-      </View>
+      <AntibiogramEditor antibiotics={antibiotics} rows={rows} onChange={(r) => { setRows(r); setResultsError(null) }} />
 
       <Button title="Registrar aislamiento" onPress={onSubmit} isLoading={isSubmitting} />
     </FormScreen>
   )
 }
 
-const INTERPRETATIONS: Record<string, Interpretation> = {
-  S: 'SUSCEPTIBLE', SENSIBLE: 'SUSCEPTIBLE', I: 'INTERMEDIATE', INTERMEDIO: 'INTERMEDIATE', R: 'RESISTANT', RESISTENTE: 'RESISTANT',
-}
-
-// "S", "I" o "R" es la lectura del laboratorio; cualquier otra cosa es una CIM y la interpreta el servidor.
-function toResult(antibioticId: number, raw: string) {
-  const value = raw.trim()
-  const interpretation = INTERPRETATIONS[value.toUpperCase()]
-  return interpretation ? { antibioticId, reportedInterpretation: interpretation } : { antibioticId, mic: value }
-}
-
 const styles = StyleSheet.create({
   hint: { color: colors.muted, fontSize: 13, marginTop: -8 },
   section: { fontSize: 16, fontWeight: '700', color: colors.text, marginTop: 8 },
   error: { color: colors.danger, fontSize: 13 },
-  results: { gap: 6 },
-  resultRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
-  resultName: { flex: 1, color: colors.text, fontSize: 15 },
-  resultInput: {
-    width: 110, minHeight: 40, borderWidth: 1, borderColor: colors.border, borderRadius: 8,
-    paddingHorizontal: 10, color: colors.text, textAlign: 'center',
-  },
 })

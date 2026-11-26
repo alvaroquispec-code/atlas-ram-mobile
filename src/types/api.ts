@@ -70,6 +70,8 @@ export interface Isolate {
   dataUploadId: number | null
   /** Servicio del paciente; null si el laboratorio no lo informó. */
   ward?: Ward | null
+  facilityId?: number
+  microorganismId?: number
 }
 
 export type Ward = 'OUTPATIENT' | 'EMERGENCY' | 'INPATIENT' | 'ICU'
@@ -146,6 +148,10 @@ export interface CreateIsolatePayload {
   ward: Ward
   /** Antibiograma: se guarda junto con el aislamiento (al menos uno). */
   results: { antibioticId: number; mic?: string; reportedInterpretation?: Interpretation }[]
+  /** Historia clínica o DNI: el servidor guarda solo un seudónimo HMAC. */
+  patientId?: string
+  /** Otro aislamiento del mismo paciente: reutiliza su seudónimo. */
+  samePatientAsIsolateId?: number
 }
 export type Syndrome = 'BACTEREMIA' | 'URINARY' | 'RESPIRATORY' | 'SKIN_SOFT_TISSUE' | 'MENINGITIS'
 
