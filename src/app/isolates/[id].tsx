@@ -1,5 +1,5 @@
-import { router, Stack, useLocalSearchParams } from 'expo-router'
-import { useState } from 'react'
+import { router, Stack, useFocusEffect, useLocalSearchParams } from 'expo-router'
+import { useCallback, useRef, useState } from 'react'
 import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native'
 import Button from '../../components/Button'
 import Card from '../../components/Card'
@@ -28,6 +28,21 @@ export default function IsolateDetailScreen() {
     (signal) => Promise.all([isolateService.findById(isolateId, signal), isolateService.results(isolateId, signal)]),
     [isolateId],
   )
+
+  // Al volver de "Agregar antibióticos" se recargan los resultados (la primera vez ya los pidió useFetch).
+  const reloadRef = useRef(reload)
+  reloadRef.current = reload
+  const firstFocus = useRef(true)
+  useFocusEffect(
+    useCallback(() => {
+      if (firstFocus.current) {
+        firstFocus.current = false
+        return
+      }
+      reloadRef.current()
+    }, []),
+  )
+  const canRegister = hasRole('LAB_TECHNICIAN', 'ADMIN')
 
   if (!Number.isInteger(isolateId) || error?.status === 404) {
     return (
@@ -89,7 +104,7 @@ export default function IsolateDetailScreen() {
             <View style={styles.resultText}>
               <Text style={styles.antibiotic}>{result.antibioticName}</Text>
               <Text style={styles.muted}>
-                {result.micValue !== null ? `CIM ${formatMic(result.micDisplay, result.micValue)} µg/mL` : result.diskDiffusionMm !== null ? `Halo ${result.diskDiffusionMm} mm` : 'Sin valor'}
+                {result.micValue !== null ? `CIM ${formatMic(result.micDisplay, result.micValue)} µg/mL` : result.diskDiffusionMm !== null ? `Halo ${result.diskDiffusionMm} mm` : 'Lectura del laboratorio'}
                 {' · '}
                 {result.breakpointStandard} {result.breakpointVersion}
               </Text>
@@ -99,6 +114,13 @@ export default function IsolateDetailScreen() {
         ))}
       </Card>
 
+      {canRegister && (
+        <View style={styles.actions}>
+          <Button title="Agregar antibióticos" variant="secondary" onPress={() => router.push(`/isolates/add-results?id=${isolate.id}`)} />
+          <Button title="Otro aislamiento de este paciente" variant="secondary" onPress={() => router.push(`/isolates/new?from=${isolate.id}`)} />
+        </View>
+      )}
+
       {hasRole('ADMIN') && <Button title="Eliminar aislamiento" variant="danger" onPress={confirmDelete} isLoading={isDeleting} />}
     </ScrollView>
   )
@@ -106,6 +128,7 @@ export default function IsolateDetailScreen() {
 
 const styles = StyleSheet.create({
   content: { padding: spacing.lg, gap: spacing.lg },
+  actions: { gap: spacing.sm },
   organism: { fontSize: 20, fontWeight: '700', fontStyle: 'italic', color: colors.text },
   section: { fontSize: 17, fontWeight: '700', color: colors.text },
   result: {
@@ -120,4 +143,4 @@ const styles = StyleSheet.create({
   resultText: { flex: 1, gap: 2 },
   antibiotic: { fontSize: 15, color: colors.text },
   muted: { fontSize: 13, color: colors.muted },
-})
+})

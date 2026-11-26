@@ -35,6 +35,7 @@ function RootNavigator() {
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="isolates/[id]" options={{ title: 'Aislamiento' }} />
         <Stack.Screen name="isolates/new" options={{ title: 'Registrar aislamiento' }} />
+        <Stack.Screen name="isolates/add-results" options={{ title: 'Agregar antibióticos' }} />
       </Stack.Protected>
     </Stack>
   )
