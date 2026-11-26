@@ -1,10 +1,12 @@
 import { Ionicons } from '@expo/vector-icons'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native'
-import type { Antibiotic, Interpretation } from '../types/api'
-import { newRow, type EntryRow, type MicQualifierInput } from '../utils/antibiogram'
+import { isolateService } from '../services/isolateService'
+import type { Antibiotic, Interpretation, InterpretationPreview, Specimen } from '../types/api'
+import { isFilled, newRow, toPayload, type EntryRow, type MicQualifierInput } from '../utils/antibiogram'
 import { normalizeName } from '../utils/labels'
 import { colors, radius, spacing } from '../utils/theme'
+import InterpretationBadge from './InterpretationBadge'
 
 const QUALIFIERS: { value: MicQualifierInput; label: string; hint: string }[] = [
   { value: '<=', label: '≤', hint: 'menor o igual' },
@@ -23,13 +25,16 @@ interface Props {
   onChange: (rows: EntryRow[]) => void
   /** Códigos que el aislamiento ya tiene: no se ofrecen. */
   excludeCodes?: string[]
+  /** Para mostrar en vivo cómo se interpretará cada resultado. */
+  microorganismId?: number
+  specimen?: Specimen
 }
 
 /**
  * Antibiograma en el celular: se agregan solo los antibióticos probados (buscador), y la CIM se elige con tres
  * botones ≤ · = · ≥ más el teclado numérico, en vez de escribir "<=" en la segunda página del teclado.
  */
-export default function AntibiogramEditor({ antibiotics, rows, onChange, excludeCodes = [] }: Props) {
+export default function AntibiogramEditor({ antibiotics, rows, onChange, excludeCodes = [], microorganismId, specimen }: Props) {
   const [picking, setPicking] = useState(false)
   const [query, setQuery] = useState('')
   const used = new Set(rows.map((r) => r.antibioticId))
@@ -80,6 +85,7 @@ export default function AntibiogramEditor({ antibiotics, rows, onChange, exclude
               />
               <Text style={styles.unit}>opcional</Text>
             </View>
+            <LivePreview row={r} microorganismId={microorganismId} specimen={specimen} />
           </View>
         )
       })}
@@ -123,6 +129,41 @@ export default function AntibiogramEditor({ antibiotics, rows, onChange, exclude
   )
 }
 
+/** Muestra S, I o R mientras se escribe, calculado por el servidor con la misma lógica que al guardar. */
+function LivePreview({ row, microorganismId, specimen }: { row: EntryRow; microorganismId?: number; specimen?: Specimen }) {
+  const [preview, setPreview] = useState<InterpretationPreview | null>(null)
+  const { mic, reportedInterpretation } = toPayload([row])[0]
+  const filled = isFilled(row)
+
+  useEffect(() => {
+    setPreview(null)
+    if (!filled || !microorganismId) return
+    const controller = new AbortController()
+    const timer = setTimeout(() => {
+      isolateService
+        .previewInterpretation(
+          { microorganismId, antibioticId: row.antibioticId, specimen, mic, reported: reportedInterpretation },
+          controller.signal,
+        )
+        .then(setPreview)
+        .catch(() => {})
+    }, 400)
+    return () => { clearTimeout(timer); controller.abort() }
+  }, [filled, microorganismId, row.antibioticId, specimen, mic, reportedInterpretation])
+
+  if (!filled) return null
+  if (!microorganismId) return <Text style={styles.unit}>Elige el microorganismo para ver la interpretación</Text>
+  if (!preview) return null
+  if (!preview.interpretation) return <Text style={styles.previewWarning}>{preview.message}</Text>
+  return (
+    <View style={styles.line}>
+      <Text style={styles.label}>Resultado</Text>
+      <InterpretationBadge value={preview.interpretation} />
+      <Text style={styles.unit}>{preview.source === 'CALCULATED' ? 'calculado con CLSI' : 'lectura del laboratorio'}</Text>
+    </View>
+  )
+}
+
 function Segmented<T extends string>({ options, value, onSelect }: {
   options: { value: T; label: string; hint: string }[]
   value: T | ''
@@ -161,6 +202,7 @@ const styles = StyleSheet.create({
   line: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   label: { width: 58, fontSize: 14, color: colors.muted },
   unit: { fontSize: 13, color: colors.muted },
+  previewWarning: { fontSize: 13, color: colors.warning },
   input: {
     width: 76, minHeight: 44, borderWidth: 1, borderColor: colors.border, borderRadius: radius.sm,
     paddingHorizontal: spacing.sm, fontSize: 16, color: colors.text, textAlign: 'center', backgroundColor: colors.surface,

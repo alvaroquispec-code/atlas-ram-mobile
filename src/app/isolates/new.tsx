@@ -175,7 +175,13 @@ export default function NewIsolateScreen() {
         marca S, I o R.
       </Text>
       {resultsError && <Text style={styles.error}>{resultsError}</Text>}
-      <AntibiogramEditor antibiotics={antibiotics} rows={rows} onChange={(r) => { setRows(r); setResultsError(null) }} />
+      <AntibiogramEditor
+        antibiotics={antibiotics}
+        rows={rows}
+        onChange={(r) => { setRows(r); setResultsError(null) }}
+        microorganismId={values.microorganismId ? Number(values.microorganismId) : undefined}
+        specimen={(values.specimenType || undefined) as Specimen | undefined}
+      />
 
       <Button title="Registrar aislamiento" onPress={onSubmit} isLoading={isSubmitting} />
     </FormScreen>

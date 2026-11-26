@@ -40,6 +40,14 @@ export interface ApiErrorBody {
 }
 
 export type Interpretation = 'SUSCEPTIBLE' | 'INTERMEDIATE' | 'RESISTANT'
+
+/** Cómo quedaría un resultado antes de guardarlo (GET /isolates/interpretation-preview). */
+export interface InterpretationPreview {
+  interpretation: Interpretation | null
+  source: 'CALCULATED' | 'LAB_REPORTED' | null
+  /** Por qué no se pudo interpretar (CIM mal escrita, sin punto de corte…). */
+  message: string | null
+}
 export type Specimen = 'BLOOD' | 'URINE' | 'RESPIRATORY' | 'WOUND' | 'CSF' | 'STOOL' | 'OTHER'
 
 export interface Microorganism {
