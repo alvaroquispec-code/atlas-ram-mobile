@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { StyleSheet, Text } from 'react-native'
+import { Ionicons } from '@expo/vector-icons'
+import { Linking, Pressable, StyleSheet, Text, View } from 'react-native'
 import Banner from '../components/Banner'
 import Button from '../components/Button'
 import FormScreen from '../components/FormScreen'
@@ -8,7 +9,7 @@ import { useAuth } from '../hooks/useAuth'
 import { useForm, type Validators } from '../hooks/useForm'
 import { useToast } from '../hooks/useToast'
 import { toApiError } from '../utils/apiError'
-import { colors } from '../utils/theme'
+import { colors, spacing } from '../utils/theme'
 import { email, required, strongPassword } from '../utils/validators'
 
 type RegisterValues = { fullName: string; email: string; password: string; confirmPassword: string }
@@ -29,12 +30,22 @@ export default function RegisterScreen() {
   )
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [formError, setFormError] = useState<string | null>(null)
+  const [accepted, setAccepted] = useState(false)
 
   const onSubmit = submit(async (form) => {
+    if (!accepted) {
+      setFormError('Para crear la cuenta debes aceptar la política de datos personales')
+      return
+    }
     setIsSubmitting(true)
     setFormError(null)
     try {
-      await register({ fullName: form.fullName.trim(), email: form.email.trim(), password: form.password })
+      await register({
+        fullName: form.fullName.trim(),
+        email: form.email.trim(),
+        password: form.password,
+        acceptedDataPolicy: true,
+      })
       showToast('Cuenta creada. ¡Bienvenido!')
     } catch (err) {
       const error = toApiError(err)
@@ -55,11 +66,33 @@ export default function RegisterScreen() {
       <TextField label="Contraseña" value={values.password} onChangeText={setValue('password')} error={errors.password} hint="Mínimo 8 caracteres, con mayúscula, minúscula y número" secureTextEntry autoComplete="new-password" />
       <TextField label="Confirma tu contraseña" value={values.confirmPassword} onChangeText={setValue('confirmPassword')} error={errors.confirmPassword} secureTextEntry />
 
+      <Pressable
+        accessibilityRole="checkbox"
+        accessibilityState={{ checked: accepted }}
+        onPress={() => setAccepted((a) => !a)}
+        style={styles.consent}
+      >
+        <Ionicons name={accepted ? 'checkbox' : 'square-outline'} size={24} color={accepted ? colors.brand : colors.muted} />
+        <View style={styles.consentText}>
+          <Text style={styles.consentLabel}>Acepto la política de tratamiento de datos personales (Ley 29733).</Text>
+          <Text style={styles.link} onPress={() => Linking.openURL('https://atlas-ram-web.vercel.app/privacidad')}>
+            Leer la política
+          </Text>
+        </View>
+      </Pressable>
+
       <Button title="Crear cuenta" onPress={onSubmit} isLoading={isSubmitting} />
+      <Text style={styles.intro}>
+        ¿Eres profesional de la salud? Después de crear tu cuenta, pide tu rol desde la web, en «Mi cuenta».
+      </Text>
     </FormScreen>
   )
 }
 
 const styles = StyleSheet.create({
   intro: { color: colors.muted, fontSize: 14 },
+  consent: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm, minHeight: 44 },
+  consentText: { flex: 1, gap: 2 },
+  consentLabel: { color: colors.text, fontSize: 14 },
+  link: { color: colors.brand, fontSize: 14, fontWeight: '600' },
 })

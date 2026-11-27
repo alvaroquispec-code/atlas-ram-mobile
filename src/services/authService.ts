@@ -9,6 +9,8 @@ export interface LoginCredentials {
 
 export interface RegisterData extends LoginCredentials {
   fullName: string
+  /** Aceptación de la política de datos personales (obligatoria, Ley 29733). */
+  acceptedDataPolicy: boolean
 }
 
 export const authService = {
